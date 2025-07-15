@@ -510,10 +510,10 @@ echo "Restauración completada para $BACKUP_DATE"
 
 #### Seguridad
 
-Rotación: Rotar API keys trimestralmente
-Acceso: Limitar acceso a archivos de configuración
-Auditoría: Revisar logs de acceso regularmente
-Encryption: Considerar cifrado de base de datos
+- Rotación: Rotar API keys trimestralmente
+- Acceso: Limitar acceso a archivos de configuración
+- Auditoría: Revisar logs de acceso regularmente
+- Encryption: Considerar cifrado de base de datos
 
 #### Rendimiento
 
@@ -531,25 +531,21 @@ Próximas Versiones
  - v1.4: API REST para integración
 
 ### Contribuciones
-Para contribuir al proyecto:
-[github](https://github.com/juanpadiaz/wazuh-ip-reputation) \
-Fork del repositorio \
-Crear branch para feature \
-Implementar cambios \
-Enviar Pull Request 
+- Para contribuir al proyecto: [github](https://github.com/juanpadiaz/wazuh-ip-reputation) 
+- Fork del repositorio
+- Crear branch para feature
+- Implementar cambios 
+- Enviar Pull Request 
 
 ### Soporte
-Canales de Soporte
-
-GitHub Issues: Para bugs y features
-
+- Canales de Soporte
+- GitHub Issues: Para bugs y features
 
 ### Información de Contacto
 
-Desarrollador: juanpadiaz [jpdiaz.com](https://jpdiaz.com/)
-Versión: 1.0.0
-Licencia: LGPL-2.1 license
-Última actualización: Julio 2025
-
+- Desarrollador: juanpadiaz [jpdiaz.com](https://jpdiaz.com/)
+- Versión: 1.0.0
+- Licencia: LGPL-2.1 license
+- Última actualización: Julio 2025
 
 Nota: Este sistema está diseñado para complementar, no reemplazar, las herramientas de seguridad existentes. Siempre valide los resultados y mantenga actualizadas las fuentes de threat intelligence.
