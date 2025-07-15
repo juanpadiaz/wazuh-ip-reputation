@@ -503,10 +503,10 @@ echo "Restauración completada para $BACKUP_DATE"
 
 #### Operación
 
-Monitoreo: Revisar logs diariamente
-Mantenimiento: Limpiar BD semanalmente
-Actualizaciones: Mantener APIs keys actualizadas
-Testing: Probar alertas mensualmente
+- Monitoreo: Revisar logs diariamente
+- Mantenimiento: Limpiar BD semanalmente
+- Actualizaciones: Mantener APIs keys actualizadas
+- Testing: Probar alertas mensualmente
 
 #### Seguridad
 
