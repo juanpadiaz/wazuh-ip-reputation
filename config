@@ -1,46 +1,58 @@
-# Configuración para Wazuh IP Reputation Checker
-# Archivo: config
-
-[apis]
-# API Key de VirusTotal (obtener en: https://www.virustotal.com/gui/my-apikey)
-virustotal_api_key = YOUR_VIRUSTOTAL_API_KEY_HERE
-
-# API Key de AbuseIPDB (obtener en: https://www.abuseipdb.com/api)
-abuseipdb_api_key = YOUR_ABUSEIPDB_API_KEY_HERE
-
-[wazuh]
-# URL del servidor Wazuh (sin slash final)
-url = https://your-wazuh-server.com:55000
-
-# Credenciales de autenticación
-username = wazuh-user
-password = your-wazuh-password
-
-# Verificar certificado SSL (true/false)
-ssl_verify = true
-
-[email]
-# Configuración del servidor SMTP
-smtp_server = smtp.gmail.com
-smtp_port = 587
-
-# Credenciales de email
-username = your-email@gmail.com
-password = your-app-password
-
-# Direcciones de correo
-from_address = wazuh-alerts@yourdomain.com
-to_addresses = security@yourdomain.com,admin@yourdomain.com
+# Configuración de Wazuh IP Reputation Checker
+# Archivo: /opt/wazuh-ip-reputation/config
 
 [general]
-# Intervalo de verificación en minutos
-check_interval_minutes = 30
+# Nivel de logging (DEBUG, INFO, WARNING, ERROR)
+log_level = INFO
 
-# Umbral de detecciones maliciosas en VirusTotal
-virustotal_threshold = 3
+# Intervalo de verificación en segundos (300 = 5 minutos)
+check_interval = 300
 
-# Umbral de confianza de abuso en AbuseIPDB (porcentaje)
-abuseipdb_threshold = 25
+# Duración del cache en segundos (3600 = 1 hora)
+cache_duration = 3600
 
-# Horas hacia atrás para buscar en logs
-hours_back = 1
+[database]
+# Ruta de la base de datos SQLite
+path = /opt/wazuh-ip-reputation/ip_reputation.db
+
+[wazuh]
+# Configuración de conexión a Wazuh Manager
+host = localhost
+port = 55000
+username = wazuh
+password = wazuh
+verify_ssl = false
+
+[apis]
+# API Keys para servicios de reputación
+# Obtener de: https://www.virustotal.com/gui/my-apikey
+virustotal_key = YOUR_VIRUSTOTAL_API_KEY_HERE
+
+# Obtener de: https://www.abuseipdb.com/account/api
+abuseipdb_key = YOUR_ABUSEIPDB_API_KEY_HERE
+
+[thresholds]
+# Umbral para considerar una IP como maliciosa (detecciones en VirusTotal)
+malicious_threshold = 5
+
+# Umbral para considerar una IP como sospechosa (detecciones en VirusTotal)
+suspicious_threshold = 2
+
+# Umbral de confianza para AbuseIPDB (porcentaje)
+abuse_confidence_threshold = 75
+
+[email]
+# Configuración para alertas por email
+enabled = true
+smtp_server = smtp.gmail.com
+smtp_port = 587
+username = your_email@gmail.com
+password = your_app_password
+from_email = wazuh-alerts@yourdomain.com
+to_emails = admin@yourdomain.com,security@yourdomain.com
+
+# Configuración para servidor SMTP local
+# smtp_server = localhost
+# smtp_port = 25
+# username = 
+# password =
