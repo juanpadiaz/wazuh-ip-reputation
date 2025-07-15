@@ -348,16 +348,14 @@ Decoders
 ```
 ## API Limits y Costos
 ### VirusTotal
-
-Gratis: 4 consultas/minuto, 500/día
-Premium: 1000 consultas/minuto
-Costo: Desde $4.99/mes
+ - Gratis: 4 consultas/minuto, 500/día
+ - Premium: 1000 consultas/minuto
+ - Costo: Desde $4.99/mes
 
 ### AbuseIPDB
-
-Gratis: 1000 consultas/día
-Premium: 10,000+ consultas/día
-Costo: Desde $20/mes
+ - Gratis: 1000 consultas/día
+ - Premium: 10,000+ consultas/día
+ - Costo: Desde $20/mes
 
 ## Ejemplos de Uso
 ### Análisis de IP Específica
@@ -382,8 +380,9 @@ sudo sqlite3 -header -csv /opt/wazuh-ip-reputation/ip_reputation.db \
 ### Troubleshooting Avanzado
 Debug Mode
 Activar modo debug modificando el config:
-ini[general]
+```ini[general]
 log_level = DEBUG
+```
 Verificación Manual de APIs
 ```bash# Test VirusTotal
 curl -X GET "https://www.virustotal.com/vtapi/v2/ip-address/report?apikey=YOUR_KEY&ip=8.8.8.8"
