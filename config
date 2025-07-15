@@ -19,8 +19,8 @@ path = /opt/wazuh-ip-reputation/ip_reputation.db
 # Configuración de conexión a Wazuh Manager
 host = localhost
 port = 55000
-username = wazuh
-password = wazuh
+username = your_wazuh_user_name
+password = your_wazuh_password
 verify_ssl = false
 
 [apis]
