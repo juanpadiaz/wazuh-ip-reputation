@@ -410,7 +410,7 @@ IBM X-Force: Para inteligencia de amenazas
 Hybrid Analysis: Para análisis de malware
 
 ### Custom Scoring
-Implementar sistema de puntuación personalizado:
+Implementar sistema de puntuación personalizado, python:
 ```python
 def calculate_custom_score(vt_detections, abuse_confidence, country_risk):
     base_score = (vt_detections * 10) + abuse_confidence
