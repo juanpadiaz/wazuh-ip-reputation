@@ -1,6 +1,12 @@
-Sistema automático de verificación de reputación de IPs basado en logs de Wazuh, utilizando VirusTotal y AbuseIPDB para detectar IPs maliciosas y enviar alertas por correo electrónico.
+## Sistema automático de verificación de reputación de IPs basado en logs de Wazuh, utilizando VirusTotal y AbuseIPDB para detectar IPs maliciosas y enviar alertas por correo electrónico.
+Contiene un script para su instalación y despliegue probado en Ubuntu 24.04 LTS.
 
-Características.
+Descarga el proyecto completo, dale permisos de ejecución al archivo install.sh y ejecútalo, este resolverá las dependencias y te pedirá las entradas de configuración necesarias.
+
+> sudo chmod +x install.sh \
+> sudo ./install.sh
+
+## Características.
 
 ✅ Extracción automática de IPs de logs de Wazuh
 
@@ -10,7 +16,7 @@ Características.
 
 ✅ Filtrado de IPs privadas (solo analiza IPs públicas)
 
-Flujo Principal:
+## Flujo Principal:
 
 - Inicio y Configuración - Carga de configuración y autenticación
 - Modos de Ejecución - Una vez o modo continuo
@@ -21,7 +27,7 @@ Flujo Principal:
 - Alertas - Envío de emails si hay IPs maliciosas
 - Persistencia - Guardado de resultados en JSON
 
-Conexiones Externas:
+## Conexiones Externas:
 
 🌐 Wazuh Server (Puerto 55000) - API REST para obtener logs y alertas
 
@@ -31,7 +37,7 @@ Conexiones Externas:
 
 📧 Servidor Email (Puerto 587/25) - Envío de alertas por SMTP
 
-Características del Flujo:
+## Características del Flujo:
 
 - Rate Limiting - Esperas de 1 segundo entre consultas API
 - Cache de IPs - Evita consultas repetidas
