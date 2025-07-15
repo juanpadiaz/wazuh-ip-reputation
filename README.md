@@ -467,9 +467,9 @@ sudo sqlite3 -header /opt/wazuh-ip-reputation/ip_reputation.db \
 ### Backup y Recuperación
 Estrategia de Backup
 
-Diario: Base de datos y configuración
-Semanal: Logs históricos
-Mensual: Backup completo del sistema
+ - Diario: Base de datos y configuración
+ - Semanal: Logs históricos
+ - Mensual: Backup completo del sistema
 
 Script de Recuperación
 ```bash#!/bin/bash
