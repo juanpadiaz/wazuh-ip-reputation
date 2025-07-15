@@ -97,7 +97,7 @@ graph TD
     %% Conexiones externas
     C -.->|HTTPS| C1[🌐 Wazuh Server<br/>Puerto 55000]
     H -.->|API REST| C1
-    M -.->|HTTPS| C2[🌐 VirusTotal API<br/>www.virustotal.com]
+    M -.->|HTTPS| C2[🌐 VirusTotal API<br/>api.virustotal.com]
     O -.->|HTTPS| C3[🌐 AbuseIPDB API<br/>api.abuseipdb.com]
     W -.->|SMTP| C4[📧 Servidor Email<br/>Puerto 587/25]
     
