@@ -8,4 +8,4 @@ Características.
 
 ✅ Alertas por email con información detallada
 
-✅ Filtrado de IPs privadas (solo analiza IPs públicas
+✅ Filtrado de IPs privadas (solo analiza IPs públicas)
