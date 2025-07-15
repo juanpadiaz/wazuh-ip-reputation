@@ -393,7 +393,7 @@ curl -G https://api.abuseipdb.com/api/v2/check \
   -H "Key: YOUR_KEY" \
   -H "Accept: application/json"
 ```
-### Validación de Base de Datos
+Validación de Base de Datos
 ```bash# Verificar integridad
 sudo sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db "PRAGMA integrity_check;"
 
