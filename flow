@@ -1,0 +1,77 @@
+graph TD
+    A[🚀 Inicio del Sistema] --> B[📁 Cargar Configuración]
+    B --> C{🔐 Autenticación Wazuh}
+    C -->|✅ Éxito| D[⏰ Iniciar Monitoreo]
+    C -->|❌ Error| E[🚨 Log Error y Salir]
+    
+    D --> F[📊 Extraer IPs de Logs Wazuh]
+    F --> G[🔍 Filtrar IPs Públicas]
+    G --> H{🆔 IPs Nuevas?}
+    H -->|❌ No| I[⏸️ Esperar Intervalo]
+    H -->|✅ Sí| J[🔄 Procesar IPs]
+    
+    J --> K[📡 Consultar VirusTotal]
+    K --> L[⏳ Rate Limiting 1s]
+    L --> M[🛡️ Consultar AbuseIPDB]
+    M --> N[⏳ Rate Limiting 1s]
+    N --> O[📈 Calcular Riesgo]
+    
+    O --> P{⚠️ IP Maliciosa?}
+    P -->|❌ No| Q[✅ Marcar IP como Procesada]
+    P -->|✅ Sí| R[🚨 Agregar a Lista Maliciosa]
+    
+    Q --> S{🔄 Más IPs?}
+    R --> S
+    S -->|✅ Sí| K
+    S -->|❌ No| T{📧 Hay IPs Maliciosas?}
+    
+    T -->|❌ No| U[💾 Guardar Resultados]
+    T -->|✅ Sí| V[📤 Enviar Alerta Email]
+    V --> U
+    
+    U --> W[🧹 Limpiar Cache si > 1000]
+    W --> I
+    I --> F
+    
+    %% Subprocesos detallados
+    K --> K1[🔍 VirusTotal API]
+    K1 --> K2[📊 Analizar Positivos/Total]
+    K2 --> K3[⚖️ Evaluar Umbral ≥ 3]
+    
+    M --> M1[🔍 AbuseIPDB API]
+    M1 --> M2[📊 Analizar Confianza %]
+    M2 --> M3[⚖️ Evaluar Umbral ≥ 25%]
+    
+    V --> V1[📝 Crear HTML Email]
+    V1 --> V2[📧 SMTP Envío]
+    V2 --> V3[📋 Tabla con Detalles]
+    
+    %% Conexiones externas
+    F -.-> WAZUH[🛡️ Wazuh Server<br/>API REST]
+    K1 -.-> VT[🔍 VirusTotal<br/>API v2]
+    M1 -.-> ABUSE[🛡️ AbuseIPDB<br/>API v2]
+    V2 -.-> SMTP[📧 SMTP Server<br/>Gmail/Outlook]
+    
+    %% Configuración
+    B -.-> CONFIG[📁 config file<br/>APIs, Wazuh, Email]
+    
+    %% Almacenamiento
+    U -.-> JSON[💾 JSON Results<br/>Timestamped]
+    
+    %% Error Handling
+    E --> END[🔚 Terminar]
+    
+    %% Estilos
+    classDef startEnd fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef external fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef storage fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef error fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    
+    class A,D,END startEnd
+    class B,F,G,J,K,L,M,N,O,Q,R,U,V,W process
+    class C,H,P,S,T decision
+    class WAZUH,VT,ABUSE,SMTP external
+    class CONFIG,JSON storage
+    class E error
