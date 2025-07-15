@@ -1,0 +1,46 @@
+# Configuración para Wazuh IP Reputation Checker
+# Archivo: config
+
+[apis]
+# API Key de VirusTotal (obtener en: https://www.virustotal.com/gui/my-apikey)
+virustotal_api_key = YOUR_VIRUSTOTAL_API_KEY_HERE
+
+# API Key de AbuseIPDB (obtener en: https://www.abuseipdb.com/api)
+abuseipdb_api_key = YOUR_ABUSEIPDB_API_KEY_HERE
+
+[wazuh]
+# URL del servidor Wazuh (sin slash final)
+url = https://your-wazuh-server.com:55000
+
+# Credenciales de autenticación
+username = wazuh-user
+password = your-wazuh-password
+
+# Verificar certificado SSL (true/false)
+ssl_verify = true
+
+[email]
+# Configuración del servidor SMTP
+smtp_server = smtp.gmail.com
+smtp_port = 587
+
+# Credenciales de email
+username = your-email@gmail.com
+password = your-app-password
+
+# Direcciones de correo
+from_address = wazuh-alerts@yourdomain.com
+to_addresses = security@yourdomain.com,admin@yourdomain.com
+
+[general]
+# Intervalo de verificación en minutos
+check_interval_minutes = 30
+
+# Umbral de detecciones maliciosas en VirusTotal
+virustotal_threshold = 3
+
+# Umbral de confianza de abuso en AbuseIPDB (porcentaje)
+abuseipdb_threshold = 25
+
+# Horas hacia atrás para buscar en logs
+hours_back = 1
