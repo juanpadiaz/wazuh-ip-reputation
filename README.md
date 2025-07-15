@@ -411,7 +411,7 @@ Hybrid Analysis: Para análisis de malware
 
 ### Custom Scoring
 Implementar sistema de puntuación personalizado:
-pythondef calculate_custom_score(vt_detections, abuse_confidence, country_risk):
+```pythondef calculate_custom_score(vt_detections, abuse_confidence, country_risk):
     base_score = (vt_detections * 10) + abuse_confidence
     
     # Ajustar por país de alto riesgo
@@ -419,7 +419,7 @@ pythondef calculate_custom_score(vt_detections, abuse_confidence, country_risk):
         base_score *= 1.5
     
     return min(base_score, 100)
-
+```
 ### Integración con SIEM
 #### Splunk
 ```bash# Configurar input para Splunk
