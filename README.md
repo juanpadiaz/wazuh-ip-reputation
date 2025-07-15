@@ -460,8 +460,8 @@ sudo sqlite3 -header /opt/wazuh-ip-reputation/ip_reputation.db \
    GROUP BY DATE(last_updated);"
 ```
 ### Métricas de Seguridad
- - MTTR (Mean Time To Response): Tiempo desde detección hasta alerta \
- - FPR (False Positive Rate): Tasa de falsos positivos \
+ - MTTR (Mean Time To Response): Tiempo desde detección hasta alerta 
+ - FPR (False Positive Rate): Tasa de falsos positivos 
  - Coverage: Porcentaje de IPs analizadas vs. total en logs
 
 ### Backup y Recuperación
