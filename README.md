@@ -262,7 +262,7 @@ log_level = INFO
 # Eliminar registros antiguos (30 días)
 sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db "DELETE FROM processed_ips WHERE processed_at < datetime('now', '-30 days');"
 
-# Vacuumar base de datos
+# Vaciar base de datos
 sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db "VACUUM;"
 ```
 
@@ -326,59 +326,66 @@ sudo du -h /opt/wazuh-ip-reputation/ip_reputation.db
 sudo tail -f /var/log/wazuh-ip-reputation-monitor.log
 ```
 
-Integración con Wazuh
-Reglas Personalizadas
+## Integración con Wazuh 
+Reglas Personalizadas 
 Crear reglas Wazuh para procesar alertas del sistema:
-xml<group name="wazuh-ip-reputation">
+```xml
+<group name="wazuh-ip-reputation">
   <rule id="100001" level="12">
     <program_name>wazuh-ip-reputation</program_name>
     <match>IP Maliciosa Detectada</match>
     <description>Malicious IP detected by reputation system</description>
   </rule>
 </group>
+```
 Decoders
-xml<decoder name="wazuh-ip-reputation">
+```xml
+<decoder name="wazuh-ip-reputation">
   <program_name>wazuh-ip-reputation</program_name>
   <regex offset="after_parent">IP Address: (\S+) Priority: (\w+) Country: (\w+)</regex>
   <order>srcip,priority,country</order>
 </decoder>
-API Limits y Costos
-VirusTotal
+```
+## API Limits y Costos
+### VirusTotal
 
 Gratis: 4 consultas/minuto, 500/día
 Premium: 1000 consultas/minuto
 Costo: Desde $4.99/mes
 
-AbuseIPDB
+### AbuseIPDB
 
 Gratis: 1000 consultas/día
 Premium: 10,000+ consultas/día
 Costo: Desde $20/mes
 
-Ejemplos de Uso
-Análisis de IP Específica
-bash# Verificar IP específica
+## Ejemplos de Uso
+### Análisis de IP Específica
+```bash# Verificar IP específica
 sudo sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db \
   "SELECT * FROM ip_reputation WHERE ip_address = '1.2.3.4';"
-Consulta de Estadísticas
-bash# IPs maliciosas por país
+```
+### Consulta de Estadísticas
+```bash# IPs maliciosas por país
 sudo sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db \
   "SELECT country_code, COUNT(*) as malicious_count 
    FROM ip_reputation 
    WHERE is_malicious = 1 
    GROUP BY country_code 
    ORDER BY malicious_count DESC;"
-Exportar Resultados
-bash# Exportar a CSV
+```
+### Exportar Resultados
+```bash# Exportar a CSV
 sudo sqlite3 -header -csv /opt/wazuh-ip-reputation/ip_reputation.db \
   "SELECT * FROM ip_reputation WHERE is_malicious = 1;" > malicious_ips.csv
-Troubleshooting Avanzado
+```
+### Troubleshooting Avanzado
 Debug Mode
 Activar modo debug modificando el config:
 ini[general]
 log_level = DEBUG
 Verificación Manual de APIs
-bash# Test VirusTotal
+```bash# Test VirusTotal
 curl -X GET "https://www.virustotal.com/vtapi/v2/ip-address/report?apikey=YOUR_KEY&ip=8.8.8.8"
 
 # Test AbuseIPDB
@@ -386,13 +393,15 @@ curl -G https://api.abuseipdb.com/api/v2/check \
   --data-urlencode "ipAddress=8.8.8.8" \
   -H "Key: YOUR_KEY" \
   -H "Accept: application/json"
-Validación de Base de Datos
-bash# Verificar integridad
+```
+### Validación de Base de Datos
+```bash# Verificar integridad
 sudo sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db "PRAGMA integrity_check;"
 
 # Estadísticas de la BD
 sudo sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db ".schema"
-Personalización
+```
+### Personalización
 Agregar Nuevas Fuentes de Threat Intelligence
 El sistema puede extenderse para incluir nuevas fuentes:
 
@@ -401,7 +410,7 @@ URLVoid: Para análisis de URLs
 IBM X-Force: Para inteligencia de amenazas
 Hybrid Analysis: Para análisis de malware
 
-Custom Scoring
+### Custom Scoring
 Implementar sistema de puntuación personalizado:
 pythondef calculate_custom_score(vt_detections, abuse_confidence, country_risk):
     base_score = (vt_detections * 10) + abuse_confidence
@@ -411,15 +420,17 @@ pythondef calculate_custom_score(vt_detections, abuse_confidence, country_risk):
         base_score *= 1.5
     
     return min(base_score, 100)
-Integración con SIEM
-Splunk
-bash# Configurar input para Splunk
+
+### Integración con SIEM
+#### Splunk
+```bash# Configurar input para Splunk
 [monitor:///var/log/wazuh-ip-reputation.log]
 disabled = false
 sourcetype = wazuh_ip_reputation
 index = security
-ELK Stack
-yaml# Logstash configuration
+```
+#### ELK Stack
+```yaml# Logstash configuration
 input {
   file {
     path => "/var/log/wazuh-ip-reputation.log"
@@ -434,9 +445,10 @@ filter {
     }
   }
 }
-Compliance y Reportes
-Generación de Reportes
-bash# Reporte diario
+```
+### Compliance y Reportes
+#### Generación de Reportes
+```bash# Reporte diario
 sudo sqlite3 -header /opt/wazuh-ip-reputation/ip_reputation.db \
   "SELECT 
      DATE(last_updated) as date,
@@ -446,13 +458,13 @@ sudo sqlite3 -header /opt/wazuh-ip-reputation/ip_reputation.db \
    FROM ip_reputation 
    WHERE DATE(last_updated) = DATE('now')
    GROUP BY DATE(last_updated);"
-Métricas de Seguridad
+```
+### Métricas de Seguridad
+ - MTTR (Mean Time To Response): Tiempo desde detección hasta alerta \
+ - FPR (False Positive Rate): Tasa de falsos positivos \
+ - Coverage: Porcentaje de IPs analizadas vs. total en logs
 
-MTTR (Mean Time To Response): Tiempo desde detección hasta alerta
-FPR (False Positive Rate): Tasa de falsos positivos
-Coverage: Porcentaje de IPs analizadas vs. total en logs
-
-Backup y Recuperación
+### Backup y Recuperación
 Estrategia de Backup
 
 Diario: Base de datos y configuración
@@ -460,7 +472,7 @@ Semanal: Logs históricos
 Mensual: Backup completo del sistema
 
 Script de Recuperación
-bash#!/bin/bash
+```bash#!/bin/bash
 # restore.sh
 
 BACKUP_DATE=$1
@@ -486,53 +498,55 @@ cp "$BACKUP_DIR/config_${BACKUP_DATE}" \
 systemctl start wazuh-ip-reputation
 
 echo "Restauración completada para $BACKUP_DATE"
-Mejores Prácticas
-Operación
+```
+### Mejores Prácticas
+
+#### Operación
 
 Monitoreo: Revisar logs diariamente
 Mantenimiento: Limpiar BD semanalmente
 Actualizaciones: Mantener APIs keys actualizadas
 Testing: Probar alertas mensualmente
 
-Seguridad
+#### Seguridad
 
 Rotación: Rotar API keys trimestralmente
 Acceso: Limitar acceso a archivos de configuración
 Auditoría: Revisar logs de acceso regularmente
 Encryption: Considerar cifrado de base de datos
 
-Rendimiento
+#### Rendimiento
 
 Caching: Ajustar cache según volumen
-Batching: Procesar IPs en lotes
-Throttling: Respetar límites de API
-Indexing: Mantener índices optimizados
+ - Batching: Procesar IPs en lotes
+ - Throttling: Respetar límites de API
+ - Indexing: Mantener índices optimizados
 
-Roadmap y Futuras Mejoras
+### Roadmap y Futuras Mejoras
 Próximas Versiones
 
-v1.1: Interfaz web para monitoreo
-v1.2: Integración con más fuentes TI
-v1.3: Machine Learning para detección
-v1.4: API REST para integración
+ - v1.1: Interfaz web para monitoreo
+ - v1.2: Integración con más fuentes TI
+ - v1.3: Machine Learning para detección
+ - v1.4: API REST para integración
 
-Contribuciones
+### Contribuciones
 Para contribuir al proyecto:
+[github](https://github.com/juanpadiaz/wazuh-ip-reputation) \
+Fork del repositorio \
+Crear branch para feature \
+Implementar cambios \
+Enviar Pull Request 
 
-Fork del repositorio
-Crear branch para feature
-Implementar cambios
-Enviar Pull Request
-
-Soporte
+### Soporte
 Canales de Soporte
 
 GitHub Issues: Para bugs y features
 
 
-Información de Contacto
+### Información de Contacto
 
-Mantenedor: juanpadiaz
+Desarrollador: juanpadiaz [jpdiaz.com](https://jpdiaz.com/)
 Versión: 1.0.0
 Licencia: LGPL-2.1 license
 Última actualización: Julio 2025
