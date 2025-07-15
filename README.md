@@ -543,7 +543,7 @@ Próximas Versiones
 
 ### Información de Contacto
 
-- Desarrollador: juanpadiaz [jpdiaz.com](https://jpdiaz.com/)
+- Desarrollador: Juan Pablo Díaz Ezcurdia [jpdiaz.com](https://jpdiaz.com/)
 - Versión: 1.0.0
 - Licencia: LGPL-2.1 license
 - Última actualización: Julio 2025
