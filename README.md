@@ -528,14 +528,13 @@ Soporte
 Canales de Soporte
 
 GitHub Issues: Para bugs y features
-Email: support@example.com
-Documentación: Wiki del proyecto
+
 
 Información de Contacto
 
 Mantenedor: juanpadiaz
 Versión: 1.0.0
-Licencia: GPL v3
+Licencia: LGPL-2.1 license
 Última actualización: Julio 2025
 
 
