@@ -1,6 +1,6 @@
 [Unit]
 Description=Wazuh IP Reputation Checker
-Documentation=https://github.com/wazuh/wazuh-ip-reputation
+Documentation=https://github.com/juanpadiaz/wazuh-ip-reputation
 After=network.target network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=0
