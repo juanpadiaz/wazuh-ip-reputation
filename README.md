@@ -404,10 +404,10 @@ sudo sqlite3 /opt/wazuh-ip-reputation/ip_reputation.db ".schema"
 Agregar Nuevas Fuentes de Threat Intelligence
 El sistema puede extenderse para incluir nuevas fuentes:
 
-Shodan: Para información de dispositivos
-URLVoid: Para análisis de URLs
-IBM X-Force: Para inteligencia de amenazas
-Hybrid Analysis: Para análisis de malware
+- Shodan: Para información de dispositivos
+- URLVoid: Para análisis de URLs
+- IBM X-Force: Para inteligencia de amenazas
+- Hybrid Analysis: Para análisis de malware
 
 ### Custom Scoring
 Implementar sistema de puntuación personalizado, python:
@@ -534,12 +534,10 @@ Próximas Versiones
 - Para contribuir al proyecto: [github](https://github.com/juanpadiaz/wazuh-ip-reputation) 
 - Fork del repositorio
 - Crear branch para feature
-- Implementar cambios 
-- Enviar Pull Request 
 
 ### Soporte
-- Canales de Soporte
-- GitHub Issues: Para bugs y features
+- **Issues**: https://github.com/juanpadiaz/NVD-Monitor/issues
+- **Wiki**: https://github.com/juanpadiaz/NVD-Monitor/wiki
 
 ### Información de Contacto
 
