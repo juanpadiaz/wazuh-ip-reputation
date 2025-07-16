@@ -14,7 +14,7 @@ Sistema automatizado para verificar la reputación de direcciones IP encontradas
 
 ## Requisitos del Sistema
 
-- Ubuntu 22.04 LTS
+- Ubuntu 24.04 LTS
 - Python 3.10+
 - Acceso a Wazuh Manager API
 - Conexión a internet para APIs externas
