@@ -61,8 +61,8 @@ check_os() {
         error "Este script está diseñado para Ubuntu. SO detectado: $ID"
     fi
     
-    if [[ "$VERSION_ID" != "22.04" ]]; then
-        warning "Este script está optimizado para Ubuntu 22.04. Versión detectada: $VERSION_ID"
+    if [[ "$VERSION_ID" != "24.04" ]]; then
+        warning "Este script está optimizado para Ubuntu 24.04. Versión detectada: $VERSION_ID"
     fi
     
     log "Sistema operativo verificado: Ubuntu $VERSION_ID"
