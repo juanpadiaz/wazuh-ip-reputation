@@ -95,7 +95,7 @@ Wazuh IP Reputation Checker es un sistema avanzado de análisis de reputación d
 
 ```bash
 # Descargar el script de instalación
-wget https://raw.githubusercontent.com/your-repo/wazuh-ip-reputation/main/install.sh
+wget https://raw.githubusercontent.com/juanpadiaz/wazuh-ip-reputation/main/install.sh
 
 # Dar permisos de ejecución
 chmod +x install.sh
@@ -380,6 +380,6 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 ---
 
 **Licencia**: MIT  
-**Autor**: Wazuh Community  
+**Autor**: Juan Pablo Díaz Ezcurdia  
 **Contribuciones**: ¡Bienvenidas! Por favor, lea CONTRIBUTING.md  
 **Soporte**: Abra un issue en GitHub o contacte a support@example.com
