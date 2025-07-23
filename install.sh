@@ -1465,4 +1465,702 @@ def main():
         else:
             print("❌ Wazuh API: Error")
         
-        # Probar otras APIs con
+        # Probar otras APIs con una IP de ejemplo
+        test_ip = "8.8.8.8"
+        
+        if checker.virustotal_api_key:
+            vt_result = checker.check_virustotal(test_ip)
+            if vt_result:
+                print("✅ VirusTotal API: OK")
+            else:
+                print("❌ VirusTotal API: Error")
+        
+        if checker.abuseipdb_api_key:
+            abuse_result = checker.check_abuseipdb(test_ip)
+            if abuse_result:
+                print("✅ AbuseIPDB API: OK")
+            else:
+                print("❌ AbuseIPDB API: Error")
+        
+        if checker.shodan_api_key:
+            shodan_result = checker.check_shodan(test_ip)
+            print("✅ Shodan API: OK" if shodan_result is not None else "❌ Shodan API: Error")
+        
+    elif args.once:
+        checker.run_analysis()
+    elif args.continuous:
+        checker.run_continuous()
+    else:
+        print("Uso: wazuh_ip_reputation.py --once | --continuous")
+        print("Use --help para más información")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+APPEOF
+    
+    chmod +x "$INSTALL_DIR/wazuh_ip_reputation.py"
+    chown "$INSTALL_USER:$INSTALL_GROUP" "$INSTALL_DIR/wazuh_ip_reputation.py"
+    log_success "Aplicación principal creada"
+}
+
+# Crear archivo de configuración
+create_config_file() {
+    log_step "Creando archivo de configuración..."
+    
+    cat > "$CONFIG_DIR/config.ini" << CONFEOF
+[general]
+log_level = INFO
+log_file = /var/log/wazuh-ip-reputation/wazuh-ip-reputation.log
+check_interval = ${CHECK_INTERVAL}
+cache_duration = 3600
+
+[database]
+host = ${DB_HOST}
+port = ${DB_PORT}
+database = ${DB_NAME}
+user = ${DB_USER}
+password = ${DB_PASSWORD}
+
+[wazuh]
+host = ${WAZUH_HOST}
+port = ${WAZUH_PORT}
+username = ${WAZUH_USERNAME}
+password = ${WAZUH_PASSWORD}
+verify_ssl = false
+
+[apis]
+virustotal_key = ${VIRUSTOTAL_API_KEY}
+abuseipdb_key = ${ABUSEIPDB_API_KEY}
+shodan_key = ${SHODAN_API_KEY}
+
+[email]
+enabled = $([ -n "$SENDER_EMAIL" ] && echo "true" || echo "false")
+smtp_server = ${SMTP_SERVER}
+smtp_port = ${SMTP_PORT}
+sender_email = ${SENDER_EMAIL}
+sender_password = ${SENDER_PASSWORD}
+recipient_emails = ${RECIPIENT_EMAILS}
+
+[thresholds]
+critical = 90
+high = 70
+medium = 40
+low = 20
+CONFEOF
+    
+    # Configurar permisos
+    chown root:"$INSTALL_GROUP" "$CONFIG_DIR/config.ini"
+    chmod 640 "$CONFIG_DIR/config.ini"
+    
+    log_success "Archivo de configuración creado"
+}
+
+# Crear herramientas de administración
+create_admin_tools() {
+    log_step "Creando herramientas de administración..."
+    
+    # Script principal de administración
+    cat > "$BIN_DIR/wazuh-reputation" << 'ADMINEOF'
+#!/bin/bash
+
+INSTALL_DIR="/opt/wazuh-ip-reputation"
+CONFIG_FILE="/etc/wazuh-ip-reputation/config.ini"
+SERVICE_NAME="wazuh-ip-reputation"
+
+# Colores
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+show_help() {
+    echo "Wazuh IP Reputation Checker - Herramienta de Administración"
+    echo
+    echo "Uso: wazuh-reputation [comando] [opciones]"
+    echo
+    echo "Comandos:"
+    echo "  start              Iniciar el servicio"
+    echo "  stop               Detener el servicio"
+    echo "  restart            Reiniciar el servicio"
+    echo "  status             Mostrar estado del servicio"
+    echo "  check-once         Ejecutar análisis una vez"
+    echo "  test-apis          Probar conexión con APIs"
+    echo "  show-stats         Mostrar estadísticas"
+    echo "  show-ips [N]       Mostrar últimas N IPs analizadas (default: 10)"
+    echo "  show-alerts [N]    Mostrar últimas N alertas enviadas (default: 10)"
+    echo "  clear-cache        Limpiar cache de IPs"
+    echo "  logs               Ver logs en tiempo real"
+    echo "  config             Editar configuración"
+    echo "  backup             Crear backup de la base de datos"
+    echo "  help               Mostrar esta ayuda"
+}
+
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo -e "${RED}Error: Este comando requiere permisos de root${NC}"
+        exit 1
+    fi
+}
+
+case "$1" in
+    start)
+        check_root
+        systemctl start $SERVICE_NAME
+        echo -e "${GREEN}Servicio iniciado${NC}"
+        ;;
+    
+    stop)
+        check_root
+        systemctl stop $SERVICE_NAME
+        echo -e "${YELLOW}Servicio detenido${NC}"
+        ;;
+    
+    restart)
+        check_root
+        systemctl restart $SERVICE_NAME
+        echo -e "${GREEN}Servicio reiniciado${NC}"
+        ;;
+    
+    status)
+        echo -e "${BLUE}Estado del servicio:${NC}"
+        systemctl status $SERVICE_NAME --no-pager
+        
+        echo
+        echo -e "${BLUE}Estadísticas rápidas:${NC}"
+        sudo -u wazuh-reputation $INSTALL_DIR/venv/bin/python << EOF
+import mysql.connector
+import configparser
+
+config = configparser.ConfigParser()
+config.read('$CONFIG_FILE')
+
+try:
+    conn = mysql.connector.connect(
+        host=config.get('database', 'host'),
+        database=config.get('database', 'database'),
+        user=config.get('database', 'user'),
+        password=config.get('database', 'password')
+    )
+    cursor = conn.cursor()
+    
+    # Total IPs
+    cursor.execute("SELECT COUNT(*) FROM ip_reputation")
+    total_ips = cursor.fetchone()[0]
+    
+    # IPs por nivel
+    cursor.execute("""
+        SELECT risk_level, COUNT(*) 
+        FROM ip_reputation 
+        GROUP BY risk_level
+    """)
+    levels = dict(cursor.fetchall())
+    
+    print(f"Total IPs analizadas: {total_ips}")
+    print(f"Críticas: {levels.get('CRITICAL', 0)}")
+    print(f"Altas: {levels.get('HIGH', 0)}")
+    print(f"Medias: {levels.get('MEDIUM', 0)}")
+    print(f"Bajas: {levels.get('LOW', 0)}")
+    print(f"Seguras: {levels.get('SAFE', 0)}")
+    
+    cursor.close()
+    conn.close()
+except Exception as e:
+    print(f"Error obteniendo estadísticas: {e}")
+EOF
+        ;;
+    
+    check-once)
+        check_root
+        echo -e "${BLUE}Ejecutando análisis único...${NC}"
+        sudo -u wazuh-reputation $INSTALL_DIR/venv/bin/python $INSTALL_DIR/wazuh_ip_reputation.py --once
+        ;;
+    
+    test-apis)
+        check_root
+        echo -e "${BLUE}Probando APIs...${NC}"
+        sudo -u wazuh-reputation $INSTALL_DIR/venv/bin/python $INSTALL_DIR/wazuh_ip_reputation.py --test-apis
+        ;;
+    
+    show-stats)
+        echo -e "${BLUE}Estadísticas del sistema:${NC}"
+        sudo -u wazuh-reputation $INSTALL_DIR/venv/bin/python << EOF
+import mysql.connector
+import configparser
+from datetime import datetime, timedelta
+from tabulate import tabulate
+
+config = configparser.ConfigParser()
+config.read('$CONFIG_FILE')
+
+try:
+    conn = mysql.connector.connect(
+        host=config.get('database', 'host'),
+        database=config.get('database', 'database'),
+        user=config.get('database', 'user'),
+        password=config.get('database', 'password')
+    )
+    cursor = conn.cursor()
+    
+    # Estadísticas de los últimos 7 días
+    cursor.execute("""
+        SELECT 
+            stat_date,
+            total_ips_checked,
+            malicious_ips_found,
+            suspicious_ips_found,
+            alerts_sent
+        FROM system_stats
+        WHERE stat_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        ORDER BY stat_date DESC
+    """)
+    
+    stats = cursor.fetchall()
+    
+    if stats:
+        headers = ['Fecha', 'IPs Analizadas', 'Maliciosas', 'Sospechosas', 'Alertas']
+        print(tabulate(stats, headers=headers, tablefmt='grid'))
+    else:
+        print("No hay estadísticas disponibles")
+    
+    cursor.close()
+    conn.close()
+except Exception as e:
+    print(f"Error: {e}")
+EOF
+        ;;
+    
+    show-ips)
+        limit="${2:-10}"
+        echo -e "${BLUE}Últimas $limit IPs analizadas:${NC}"
+        sudo -u wazuh-reputation $INSTALL_DIR/venv/bin/python << EOF
+import mysql.connector
+import configparser
+from tabulate import tabulate
+
+config = configparser.ConfigParser()
+config.read('$CONFIG_FILE')
+
+try:
+    conn = mysql.connector.connect(
+        host=config.get('database', 'host'),
+        database=config.get('database', 'database'),
+        user=config.get('database', 'user'),
+        password=config.get('database', 'password')
+    )
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT 
+            ip_address,
+            risk_level,
+            risk_score,
+            abuse_country_code,
+            DATE_FORMAT(last_checked, '%Y-%m-%d %H:%i') as last_checked
+        FROM ip_reputation
+        ORDER BY last_checked DESC
+        LIMIT %s
+    """, ($limit,))
+    
+    ips = cursor.fetchall()
+    
+    if ips:
+        headers = ['IP', 'Nivel', 'Score', 'País', 'Última Verificación']
+        print(tabulate(ips, headers=headers, tablefmt='grid'))
+    else:
+        print("No hay IPs registradas")
+    
+    cursor.close()
+    conn.close()
+except Exception as e:
+    print(f"Error: {e}")
+EOF
+        ;;
+    
+    show-alerts)
+        limit="${2:-10}"
+        echo -e "${BLUE}Últimas $limit alertas enviadas:${NC}"
+        sudo -u wazuh-reputation $INSTALL_DIR/venv/bin/python << EOF
+import mysql.connector
+import configparser
+from tabulate import tabulate
+
+config = configparser.ConfigParser()
+config.read('$CONFIG_FILE')
+
+try:
+    conn = mysql.connector.connect(
+        host=config.get('database', 'host'),
+        database=config.get('database', 'database'),
+        user=config.get('database', 'user'),
+        password=config.get('database', 'password')
+    )
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT 
+            ip_address,
+            alert_level,
+            alert_type,
+            DATE_FORMAT(sent_at, '%Y-%m-%d %H:%i') as sent_at
+        FROM sent_alerts
+        ORDER BY sent_at DESC
+        LIMIT %s
+    """, ($limit,))
+    
+    alerts = cursor.fetchall()
+    
+    if alerts:
+        headers = ['IP', 'Nivel', 'Tipo', 'Fecha Envío']
+        print(tabulate(alerts, headers=headers, tablefmt='grid'))
+    else:
+        print("No hay alertas registradas")
+    
+    cursor.close()
+    conn.close()
+except Exception as e:
+    print(f"Error: {e}")
+EOF
+        ;;
+    
+    clear-cache)
+        check_root
+        echo -e "${YELLOW}Limpiando cache de IPs...${NC}"
+        # Actualizar last_checked a una fecha antigua para forzar re-análisis
+        sudo -u wazuh-reputation $INSTALL_DIR/venv/bin/python << EOF
+import mysql.connector
+import configparser
+from datetime import datetime, timedelta
+
+config = configparser.ConfigParser()
+config.read('$CONFIG_FILE')
+
+try:
+    conn = mysql.connector.connect(
+        host=config.get('database', 'host'),
+        database=config.get('database', 'database'),
+        user=config.get('database', 'user'),
+        password=config.get('database', 'password')
+    )
+    cursor = conn.cursor()
+    
+    old_date = datetime.now() - timedelta(days=30)
+    cursor.execute("""
+        UPDATE ip_reputation 
+        SET last_checked = %s
+    """, (old_date,))
+    
+    affected = cursor.rowcount
+    conn.commit()
+    
+    print(f"Cache limpiado. {affected} IPs marcadas para re-análisis")
+    
+    cursor.close()
+    conn.close()
+except Exception as e:
+    print(f"Error: {e}")
+EOF
+        ;;
+    
+    logs)
+        echo -e "${BLUE}Mostrando logs en tiempo real (Ctrl+C para salir)...${NC}"
+        tail -f /var/log/wazuh-ip-reputation/wazuh-ip-reputation.log
+        ;;
+    
+    config)
+        check_root
+        ${EDITOR:-nano} $CONFIG_FILE
+        echo -e "${YELLOW}Recuerde reiniciar el servicio para aplicar cambios${NC}"
+        ;;
+    
+    backup)
+        check_root
+        echo -e "${BLUE}Creando backup...${NC}"
+        BACKUP_DIR="/var/lib/wazuh-ip-reputation/backups"
+        mkdir -p $BACKUP_DIR
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        
+        # Leer configuración de base de datos
+        DB_NAME=$(grep "^database" $CONFIG_FILE | cut -d'=' -f2 | xargs)
+        DB_USER=$(grep "^user" $CONFIG_FILE | cut -d'=' -f2 | xargs)
+        DB_PASS=$(grep "^password" $CONFIG_FILE | cut -d'=' -f2 | xargs)
+        
+        mysqldump -u$DB_USER -p$DB_PASS $DB_NAME > "$BACKUP_DIR/backup_${TIMESTAMP}.sql"
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}Backup creado: $BACKUP_DIR/backup_${TIMESTAMP}.sql${NC}"
+            
+            # Mantener solo los últimos 7 backups
+            cd $BACKUP_DIR
+            ls -t backup_*.sql | tail -n +8 | xargs -r rm
+        else
+            echo -e "${RED}Error creando backup${NC}"
+        fi
+        ;;
+    
+    help|"")
+        show_help
+        ;;
+    
+    *)
+        echo -e "${RED}Comando no reconocido: $1${NC}"
+        echo
+        show_help
+        exit 1
+        ;;
+esac
+ADMINEOF
+    
+    chmod +x "$BIN_DIR/wazuh-reputation"
+    log_success "Herramientas de administración creadas"
+}
+
+# Crear servicio systemd
+create_systemd_service() {
+    log_step "Creando servicio systemd..."
+    
+    cat > "/etc/systemd/system/$SERVICE_NAME.service" << SERVICEEOF
+[Unit]
+Description=Wazuh IP Reputation Checker
+Documentation=https://github.com/wazuh/wazuh-ip-reputation
+After=network.target mariadb.service mysql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=$INSTALL_USER
+Group=$INSTALL_GROUP
+WorkingDirectory=$INSTALL_DIR
+
+# Comando principal
+ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/wazuh_ip_reputation.py --continuous
+
+# Reinicio automático
+Restart=always
+RestartSec=30
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Configuración de seguridad
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=$LOG_DIR $DATA_DIR
+PrivateTmp=yes
+
+# Variables de entorno
+Environment="PYTHONUNBUFFERED=1"
+Environment="PATH=$INSTALL_DIR/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Logs
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=$SERVICE_NAME
+
+[Install]
+WantedBy=multi-user.target
+SERVICEEOF
+    
+    systemctl daemon-reload
+    log_success "Servicio systemd creado"
+}
+
+# Configurar logrotate
+configure_logrotate() {
+    log_step "Configurando rotación de logs..."
+    
+    cat > "/etc/logrotate.d/$SERVICE_NAME" << LOGROTATEEOF
+$LOG_DIR/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 644 $INSTALL_USER $INSTALL_GROUP
+    sharedscripts
+    postrotate
+        systemctl reload $SERVICE_NAME > /dev/null 2>&1 || true
+    endscript
+}
+LOGROTATEEOF
+    
+    log_success "Logrotate configurado"
+}
+
+# Crear scripts adicionales
+create_additional_scripts() {
+    log_step "Creando scripts adicionales..."
+    
+    # Script de backup automático
+    cat > "$DATA_DIR/scripts/backup.sh" << 'BACKUPEOF'
+#!/bin/bash
+
+BACKUP_DIR="/var/lib/wazuh-ip-reputation/backups"
+CONFIG_FILE="/etc/wazuh-ip-reputation/config.ini"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+LOG_FILE="/var/log/wazuh-ip-reputation/backup.log"
+
+# Crear directorio si no existe
+mkdir -p "$BACKUP_DIR"
+
+# Función de logging
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+}
+
+log "Iniciando backup..."
+
+# Leer configuración
+DB_NAME=$(grep "^database" $CONFIG_FILE | cut -d'=' -f2 | xargs)
+DB_USER=$(grep "^user" $CONFIG_FILE | cut -d'=' -f2 | xargs)
+DB_PASS=$(grep "^password" $CONFIG_FILE | cut -d'=' -f2 | xargs)
+
+# Crear backup
+if mysqldump -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_DIR/backup_${TIMESTAMP}.sql"; then
+    gzip "$BACKUP_DIR/backup_${TIMESTAMP}.sql"
+    log "Backup creado: backup_${TIMESTAMP}.sql.gz"
+    
+    # Eliminar backups antiguos (mantener últimos 7)
+    find "$BACKUP_DIR" -name "backup_*.sql.gz" -type f -mtime +7 -delete
+    log "Backups antiguos eliminados"
+else
+    log "ERROR: Fallo al crear backup"
+    exit 1
+fi
+
+log "Backup completado"
+BACKUPEOF
+    
+    chmod +x "$DATA_DIR/scripts/backup.sh"
+    chown "$INSTALL_USER:$INSTALL_GROUP" "$DATA_DIR/scripts/backup.sh"
+    
+    # Agregar a crontab
+    echo "0 2 * * * $INSTALL_USER $DATA_DIR/scripts/backup.sh" > /etc/cron.d/wazuh-ip-reputation-backup
+    
+    log_success "Scripts adicionales creados"
+}
+
+# Finalizar instalación
+finalize_installation() {
+    log_step "Finalizando instalación..."
+    
+    # Habilitar servicio
+    systemctl enable $SERVICE_NAME
+    
+    # Iniciar servicio
+    if systemctl start $SERVICE_NAME; then
+        log_success "Servicio iniciado correctamente"
+    else
+        log_warn "El servicio no pudo iniciarse automáticamente"
+        log_warn "Verifique la configuración y los logs"
+    fi
+    
+    # Verificar permisos finales
+    chown -R "$INSTALL_USER:$INSTALL_GROUP" "$INSTALL_DIR"
+    chown -R "$INSTALL_USER:$INSTALL_GROUP" "$LOG_DIR"
+    chown -R "$INSTALL_USER:$INSTALL_GROUP" "$DATA_DIR"
+    
+    log_success "Instalación finalizada"
+}
+
+# Mostrar resumen
+show_summary() {
+    log_header "INSTALACIÓN COMPLETADA"
+    
+    echo -e "${GREEN}✅ Wazuh IP Reputation Checker v${SCRIPT_VERSION} instalado exitosamente${NC}"
+    echo
+    
+    echo "📁 UBICACIONES:"
+    echo "   • Aplicación: $INSTALL_DIR"
+    echo "   • Configuración: $CONFIG_DIR/config.ini"
+    echo "   • Logs: $LOG_DIR/"
+    echo "   • Datos: $DATA_DIR/"
+    echo "   • Comando: wazuh-reputation"
+    echo
+    
+    echo "📊 CONFIGURACIÓN:"
+    echo "   • Base de datos: $DB_TYPE en $DB_HOST:$DB_PORT"
+    echo "   • Wazuh: $WAZUH_HOST:$WAZUH_PORT"
+    
+    if [[ -n "$VIRUSTOTAL_API_KEY" ]]; then
+        echo "   • VirusTotal: ✅ Configurado"
+    else
+        echo "   • VirusTotal: ❌ No configurado"
+    fi
+    
+    if [[ -n "$ABUSEIPDB_API_KEY" ]]; then
+        echo "   • AbuseIPDB: ✅ Configurado"
+    else
+        echo "   • AbuseIPDB: ❌ No configurado"
+    fi
+    
+    if [[ -n "$SHODAN_API_KEY" ]]; then
+        echo "   • Shodan: ✅ Configurado"
+    else
+        echo "   • Shodan: ❌ No configurado"
+    fi
+    
+    if [[ -n "$SENDER_EMAIL" ]]; then
+        echo "   • Email: ✅ Configurado"
+    else
+        echo "   • Email: ❌ No configurado"
+    fi
+    echo
+    
+    echo "🚀 PRÓXIMOS PASOS:"
+    echo
+    echo "1. Verificar el estado del servicio:"
+    echo "   sudo wazuh-reputation status"
+    echo
+    echo "2. Probar las APIs configuradas:"
+    echo "   sudo wazuh-reputation test-apis"
+    echo
+    echo "3. Ejecutar un análisis manual:"
+    echo "   sudo wazuh-reputation check-once"
+    echo
+    echo "4. Ver logs en tiempo real:"
+    echo "   sudo wazuh-reputation logs"
+    echo
+    echo "5. Modificar configuración si es necesario:"
+    echo "   sudo wazuh-reputation config"
+    echo
+    
+    if [[ -n "$CURRENT_USER" ]] && [[ "$CURRENT_USER" != "root" ]]; then
+        echo -e "${YELLOW}⚠️  NOTA: Se agregó el usuario $CURRENT_USER al grupo $INSTALL_GROUP${NC}"
+        echo -e "${YELLOW}   Cierre sesión y vuelva a entrar para aplicar los cambios${NC}"
+        echo
+    fi
+    
+    echo "📚 COMANDOS DISPONIBLES:"
+    echo "   wazuh-reputation help    - Ver todos los comandos disponibles"
+    echo
+    
+    echo -e "${GREEN}¡Sistema listo para proteger su infraestructura!${NC}"
+}
+
+# Función principal
+main() {
+    show_welcome_banner
+    check_prerequisites
+    install_dependencies
+    create_system_user
+    create_directories
+    setup_python_environment
+    setup_database
+    configure_wazuh
+    configure_reputation_apis
+    configure_email
+    create_main_application
+    create_config_file
+    create_admin_tools
+    create_systemd_service
+    configure_logrotate
+    create_additional_scripts
+    finalize_installation
+    show_summary
+}
+
+# Ejecutar instalación
+main "$@"
