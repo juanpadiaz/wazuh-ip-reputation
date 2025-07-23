@@ -379,7 +379,14 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 
 ---
 
-**Licencia**: MIT  
-**Autor**: Juan Pablo Díaz Ezcurdia  
-**Contribuciones**: ¡Bienvenidas! Por favor, lea CONTRIBUTING.md  
-**Soporte**: Abra un issue en GitHub
+## 👨‍💻 Autor y Licencia
+
+- **Desarrollador**: Juan Pablo Díaz Ezcurdia
+- **Website**: [jpdiaz.com](https://jpdiaz.com)
+- **Licencia**: MIT License
+- **Versión**: 2.0.0
+- **Última actualización**: Julio 2025
+
+---
+
+**Nota**: Este sistema está diseñado para complementar, no reemplazar, las herramientas de seguridad existentes. Siempre valide los resultados y mantenga actualizadas todas sus herramientas de seguridad.
