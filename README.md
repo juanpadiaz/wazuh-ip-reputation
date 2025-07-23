@@ -382,4 +382,4 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 **Licencia**: MIT  
 **Autor**: Juan Pablo Díaz Ezcurdia  
 **Contribuciones**: ¡Bienvenidas! Por favor, lea CONTRIBUTING.md  
-**Soporte**: Abra un issue en GitHub o contacte a support@example.com
+**Soporte**: Abra un issue en GitHub
