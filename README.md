@@ -1,6 +1,6 @@
 # Wazuh IP Reputation Checker
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Ubuntu](https://img.shields.io/badge/ubuntu-24.04_LTS-orange.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-yellow.svg)
@@ -359,7 +359,20 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 
 ## 📝 Changelog
 
-### Version 2.0.0 (2024-01-15)
+### Version 2.0.1 (2024-07-15)
+- 📋 Cambios principales en la versión 2.0.1:
+- ✅ Corrección de VirusTotal API:
+- ✨URL correcta: https://www.virustotal.com/api/v3/ip-addresses/{ip}
+- ✨Headers apropiados: 'x-apikey' y 'Accept: application/json'
+- ✨Mejor manejo de respuestas 404 (IP no encontrada)
+- ✨Navegación correcta en la estructura JSON de respuesta
+
+- ✅ Otras mejoras:
+- ✨Actualizada la versión a 2.0.1 en todo el código
+- ✨Mejor manejo de errores en todas las APIs
+- ✨Logging mejorado para diagnóstico
+
+### Version 2.0.0 (2024-06-12)
 - 🎉 Release inicial completo
 - ✨ Integración con Wazuh API
 - ✨ Soporte para VirusTotal, AbuseIPDB y Shodan
