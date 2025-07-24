@@ -367,9 +367,9 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 - ✨Mejor manejo de respuestas 404 (IP no encontrada)
 - ✨Navegación correcta en la estructura JSON de respuesta
 - ✅ Otras mejoras:
-   -✨Actualizada la versión a 2.0.1 en todo el código
-   -✨Mejor manejo de errores en todas las APIs
-   -✨Logging mejorado para diagnóstico
+    - ✨Actualizada la versión a 2.0.1 en todo el código
+    - ✨Mejor manejo de errores en todas las APIs
+    - ✨Logging mejorado para diagnóstico
 
 ### Version 2.0.0 (2024-06-12)
 - 🎉 Release inicial completo
