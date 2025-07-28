@@ -101,7 +101,7 @@ wget https://raw.githubusercontent.com/juanpadiaz/wazuh-ip-reputation/main/insta
 chmod +x install.sh
 
 # Ejecutar instalación
-sudo ./install.sh
+sudo bash install.sh
 ```
 
 ## ⚙️ Configuración
