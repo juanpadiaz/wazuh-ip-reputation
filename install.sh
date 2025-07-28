@@ -100,7 +100,6 @@ show_welcome_banner() {
 EOF
     echo -e "${NC}"
     echo -e "${GREEN}Sistema de Análisis de Reputación de IPs para Wazuh${NC}"
-    echo -e "${YELLOW}Versión con parche mejorado para extracción de IPs${NC}"
     echo
     echo "🎯 Este instalador configurará:"
     echo "   ✅ Base de datos MariaDB/MySQL"
