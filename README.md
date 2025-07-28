@@ -217,7 +217,44 @@ sudo journalctl -u wazuh-ip-reputation -f
 # Habilitar inicio automático
 sudo systemctl enable wazuh-ip-reputation
 ```
+### Activar/Desactivar modo de prueba
+```bash
+# Activar modo de prueba
+sudo wazuh-reputation test-mode-on
 
+# Desactivar modo de prueba
+sudo wazuh-reputation test-mode-off
+
+# Reiniciar para aplicar cambios
+sudo wazuh-reputation restart
+```
+### Editando la configuración:
+```bash
+# Editar configuración
+sudo nano /etc/wazuh-ip-reputation/config.ini
+
+# En la sección [general], agregar o modificar:
+test_mode = true   # o false para desactivar
+
+# Reiniciar el servicio
+sudo systemctl restart wazuh-ip-reputation
+```
+Verificación:
+```
+bash
+# 1. Verificar el estado del servicio
+sudo wazuh-reputation status
+
+# 2. Probar la extracción de IPs
+sudo wazuh-reputation check-once
+
+# 3. Ver los logs en tiempo real
+sudo wazuh-reputation logs
+
+# 4. Si activaste el modo de prueba, deberías ver:
+# "Modo de prueba activado - generando IPs de ejemplo"
+# Y 3 IPs de prueba serán procesadas
+```
 ### Sistema de Notificaciones
 
 El sistema envía notificaciones automáticas cuando detecta IPs con niveles de riesgo CRITICAL, HIGH o MEDIUM.
@@ -359,19 +396,28 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 
 ## 📝 Changelog
 
-### Version 2.0.1 (2024-07-15)
+### Versión 2.0.2 (2024-07-28)
+- 📋Busca en múltiples endpoints de Wazuh
+- ✅Incluye vulnerabilidades y eventos de integridad
+- ✅Modo de prueba para generar IPs de ejemplo
+- ✅Mejor logging y manejo de errores
+
+### Versión 2.0.1 (2024-07-15)
 - 📋 Cambios principales en la versión 2.0.1:
 - ✅ Corrección de VirusTotal API:
 - ✨URL correcta: https://www.virustotal.com/api/v3/ip-addresses/{ip}
 - ✨Headers apropiados: 'x-apikey' y 'Accept: application/json'
 - ✨Mejor manejo de respuestas 404 (IP no encontrada)
 - ✨Navegación correcta en la estructura JSON de respuesta
+- ✨Solo busca en endpoint /alerts
+- ✨Requiere alertas activas para encontrar IPs
 - ✅ Otras mejoras:
     - ✨Actualizada la versión a 2.0.1 en todo el código
     - ✨Mejor manejo de errores en todas las APIs
     - ✨Logging mejorado para diagnóstico
 
-### Version 2.0.0 (2024-06-12)
+
+### Versión 2.0.0 (2024-06-12)
 - 🎉 Release inicial completo
 - ✨ Integración con Wazuh API
 - ✨ Soporte para VirusTotal, AbuseIPDB y Shodan
