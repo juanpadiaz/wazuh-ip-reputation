@@ -4,6 +4,7 @@
 # Wazuh IP Reputation Checker - Script de Instalación
 # Compatible con: Ubuntu 24.04 LTS
 # Versión: 3.0.0 (con soporte para campos de red personalizables)
+# https://github.com/juanpadiaz/
 # =============================================================================
 
 set -euo pipefail
