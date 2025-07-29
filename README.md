@@ -450,7 +450,7 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 
 - **Líneas de código**: ~2,800
 - **Archivos Python**: 2
-- **Scripts Bash**: 4
+- **Scripts Bash**: 2
 - **Tablas de BD**: 5
 - **APIs integradas**: 4 (Wazuh + 3 threat intel)
 - **Tiempo promedio de análisis por IP**: 3-5 segundos
