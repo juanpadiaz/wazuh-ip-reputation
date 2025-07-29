@@ -95,13 +95,13 @@ Wazuh IP Reputation Checker es un sistema avanzado de análisis de reputación d
 
 ```bash
 # Descargar el script de instalación
-wget https://raw.githubusercontent.com/juanpadiaz/wazuh-ip-reputation/main/install.sh
+wget https://raw.githubusercontent.com/juanpadiaz/wazuh-ip-reputation/main/wazuh_ip_reputation_install.sh
 
 # Dar permisos de ejecución
-chmod +x install.sh
+chmod +x wazuh_ip_reputation_install.sh
 
 # Ejecutar instalación
-sudo bash install.sh
+sudo bash wazuh_ip_reputation_install.sh
 ```
 
 ## ⚙️ Configuración
