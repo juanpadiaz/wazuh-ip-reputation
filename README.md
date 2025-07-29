@@ -24,7 +24,7 @@ Wazuh IP Reputation Checker es un sistema avanzado de análisis de reputación d
 - 📈 **Estadísticas y reportes**: Métricas detalladas del sistema
 - 🔧 **Herramientas de administración**: CLI completa para gestión
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ Diagrama conceptual
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
@@ -44,8 +44,137 @@ Wazuh IP Reputation Checker es un sistema avanzado de análisis de reputación d
                         │     Email       │
                         └─────────────────┘
 ```
+##  🔓 Arquitectura del Sistema
+```mermaid
+graph TB
+    subgraph "Wazuh Infrastructure"
+        WAZUH[🛡️ Wazuh Manager<br/>API v4.x]
+        AGENTS[🖥️ Wazuh Agents<br/>Active Endpoints]
+        ALERTS[(📊 Wazuh Alerts<br/>Security Events)]
+        
+        AGENTS -->|Send Events| WAZUH
+        WAZUH -->|Generate| ALERTS
+    end
+    
+    subgraph "External Integrations"
+        SURICATA[🔍 Suricata IDS<br/>Network Traffic]
+        PFSENSE[🔥 pfSense<br/>Firewall Logs]
+        OTHER[📡 Other Sources<br/>Custom Integrations]
+        
+        SURICATA -->|data.flow.*| WAZUH
+        PFSENSE -->|Firewall Events| WAZUH
+        OTHER -->|Custom Fields| WAZUH
+    end
+    
+    subgraph "Reputation APIs"
+        VT[🔍 VirusTotal API<br/>v3.0]
+        ABUSE[🛡️ AbuseIPDB<br/>v2.0]
+        SHODAN[🌐 Shodan API<br/>Host Intelligence]
+    end
+    
+    subgraph "IP Reputation Core v3.0.0"
+        EXTRACTOR[🔎 IP Extractor<br/>Multi-source Parser]
+        ANALYZER[📊 Reputation Analyzer<br/>Risk Scoring Engine]
+        SCHEDULER[⏰ Scheduler<br/>Continuous Monitoring]
+        CACHE[💾 Cache Manager<br/>Performance Optimization]
+        
+        SCHEDULER -->|Trigger| EXTRACTOR
+        EXTRACTOR -->|Valid IPs| ANALYZER
+        ANALYZER -->|Check Cache| CACHE
+    end
+    
+    subgraph "Field Configuration"
+        FIELDS[📋 network_fields.yml<br/>Customizable Fields]
+        STANDARD[📌 Standard Fields<br/>data.srcip/dstip]
+        CUSTOM[🔧 Custom Fields<br/>User Defined]
+        
+        FIELDS -->|Configure| EXTRACTOR
+        STANDARD -->|Default| FIELDS
+        CUSTOM -->|Extend| FIELDS
+    end
+    
+    subgraph "Data Processing"
+        VALIDATOR[✅ IP Validator<br/>Public IP Filter]
+        SCORER[📈 Risk Calculator<br/>Weighted Scoring]
+        DEDUP[🔄 Deduplicator<br/>Unique IP Processing]
+        
+        EXTRACTOR -->|Raw IPs| VALIDATOR
+        VALIDATOR -->|Public IPs| DEDUP
+        DEDUP -->|Unique Set| ANALYZER
+        ANALYZER -->|API Results| SCORER
+    end
+    
+    subgraph "Data Layer"
+        DB[(🗄️ MySQL/MariaDB<br/>IP Reputation DB)]
+        PROCESSED[(📝 Processed IPs<br/>Wazuh Events)]
+        STATS[(📊 System Stats<br/>Metrics & Analytics)]
+        ALERTS_DB[(🚨 Sent Alerts<br/>Notification History)]
+        
+        SCORER -->|Store Results| DB
+        EXTRACTOR -->|Log Sources| PROCESSED
+        ANALYZER -->|Update| STATS
+    end
+    
+    subgraph "Notification System"
+        ALERTENGINE[🚨 Alert Engine<br/>Threshold Detection]
+        EMAILER[📧 Email Composer<br/>HTML/Plain Text]
+        SMTP[📮 SMTP Gateway<br/>TLS Support]
+        
+        SCORER -->|Risk Level| ALERTENGINE
+        ALERTENGINE -->|Generate| EMAILER
+        EMAILER -->|Send via| SMTP
+        EMAILER -->|Log| ALERTS_DB
+    end
+    
+    subgraph "System Integration"
+        SYSTEMD[⚙️ Systemd Service<br/>Auto-restart]
+        CLI[🔧 wazuh-reputation<br/>Admin CLI Suite]
+        CONFIG[📁 Configuration<br/>config.ini]
+        LOGS[📋 Structured Logs<br/>Rotating Files]
+        
+        SYSTEMD -->|Manage| SCHEDULER
+        CLI -->|Control| SCHEDULER
+        CONFIG -->|Settings| EXTRACTOR
+        CONFIG -->|Settings| ANALYZER
+    end
+    
+    subgraph "API Interactions"
+        WAZUH -->|REST API + Token| EXTRACTOR
+        ANALYZER -->|HTTPS| VT
+        ANALYZER -->|HTTPS| ABUSE
+        ANALYZER -->|HTTPS| SHODAN
+        
+        VT -->|Malware Intel| SCORER
+        ABUSE -->|Abuse Reports| SCORER
+        SHODAN -->|Host Data| SCORER
+    end
+    
+    subgraph "Test & Debug Features"
+        TESTMODE[🧪 Test Mode<br/>Sample IPs]
+        EMAILTEST[📧 Email Test<br/>Config Validation]
+        APITEST[🔌 API Test<br/>Connectivity Check]
+        
+        TESTMODE -->|Generate| EXTRACTOR
+        EMAILTEST -->|Verify| SMTP
+        APITEST -->|Check| VT
+        APITEST -->|Check| ABUSE
+        APITEST -->|Check| SHODAN
+    end
+    
+    subgraph "Data Flow Endpoints"
+        VULN[🔓 Vulnerabilities<br/>/vulnerability/id]
+        SYSCHECK[📁 File Integrity<br/>/syscheck/id]
+        MANAGER[📊 Manager Logs<br/>/manager/logs]
+        ALERTSAPI[🚨 Alerts API<br/>/alerts]
+        
+        VULN -->|CVE Data| EXTRACTOR
+        SYSCHECK -->|File Events| EXTRACTOR
+        MANAGER -->|System Logs| EXTRACTOR
+        ALERTSAPI -->|Security Events| EXTRACTOR
+    end
+```
 
-## 📁 Estructura del Sistema
+## 📁 Estructura de archivos
 
 ```
 /opt/wazuh-ip-reputation/          # Directorio principal de la aplicación
