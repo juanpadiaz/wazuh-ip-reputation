@@ -1,6 +1,6 @@
 # Wazuh IP Reputation Checker
 
-![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)
+![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Ubuntu](https://img.shields.io/badge/ubuntu-24.04_LTS-orange.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-yellow.svg)
@@ -177,30 +177,62 @@ high = 70                  # Score >= 70 = HIGH
 medium = 40                # Score >= 40 = MEDIUM
 low = 20                   # Score >= 20 = LOW
 ```
+### Archivo de campos utilizados para la evualuación (network_fields.yml)
 
+```yaml
+# Campos estándar
+standard_fields:
+  - field: data.srcip
+    description: "IP de origen estándar"
+
+# Campos de Suricata
+suricata_fields:
+  - field: data.flow.src_ip
+    description: "IP origen de Suricata"
+
+# Campos personalizados
+custom_fields:
+  - field: data.mi_integracion.ip_field
+    description: "Mi campo personalizado"
+
+# Estructuras anidadas a explorar
+nested_structures:
+  - data.flow
+  - data.network
+
+# Campos a ignorar
+ignore_fields:
+  - data.hostname
+
+```
 ## 🛠️ Comandos de Administración
 
 ```bash
 # Gestión del servicio
-wazuh-reputation start              # Iniciar servicio
-wazuh-reputation stop               # Detener servicio
-wazuh-reputation restart            # Reiniciar servicio
-wazuh-reputation status             # Ver estado y estadísticas
+sudo wazuh-reputation start              # Iniciar servicio
+sudo wazuh-reputation stop               # Detener servicio
+sudo wazuh-reputation restart            # Reiniciar servicio
+sudo wazuh-reputation status             # Ver estado y estadísticas
 
 # Operaciones
-wazuh-reputation check-once         # Ejecutar análisis manual
-wazuh-reputation test-apis          # Probar conexión con APIs
-wazuh-reputation clear-cache        # Limpiar cache de IPs
+sudo wazuh-reputation check-once         # Ejecutar análisis manual
+sudo wazuh-reputation test-apis          # Probar conexión con APIs
+sudo wazuh-reputation clear-cache        # Limpiar cache de IPs
+sudo wazuh-reputation test-email    # Probar el envío de notificaciones por correo electrónico
 
 # Consultas
-wazuh-reputation show-stats         # Mostrar estadísticas detalladas
-wazuh-reputation show-ips [N]       # Mostrar últimas N IPs analizadas
-wazuh-reputation show-alerts [N]    # Mostrar últimas N alertas enviadas
+sudo wazuh-reputation show-stats         # Mostrar estadísticas detalladas
+sudo wazuh-reputation show-ips [N]       # Mostrar últimas N IPs analizadas
+sudo wazuh-reputation show-alerts [N]    # Mostrar últimas N alertas enviadas
 
 # Mantenimiento
-wazuh-reputation logs               # Ver logs en tiempo real
-wazuh-reputation backup             # Crear backup manual
-wazuh-reputation config             # Editar configuración
+sudo wazuh-reputation logs               # Ver logs en tiempo real
+sudo wazuh-reputation backup             # Crear backup manual
+sudo wazuh-reputation config             # Editar configuración
+sudo wazuh-reputation test-email         # Probar configuración de email
+sudo wazuh-reputation show-fields        # Ver campos de red configurados
+sudo wazuh-reputation edit-fields        # Editar campos para evaluación personalizados
+sudo wazuh-reputation check-once         # ejecutar la aplicación completa, útil si se habilita el modo de prueba
 ```
 
 ## 📊 Gestión del Servicio
@@ -255,6 +287,22 @@ sudo wazuh-reputation logs
 # "Modo de prueba activado - generando IPs de ejemplo"
 # Y 3 IPs de prueba serán procesadas
 ```
+### Agregar campos personalizados para su evaluación
+1. **Editar el archivo**:
+```bash
+sudo wazuh-reputation edit-fields
+````
+2. **Agregar campos en la sección apropiada**:
+```yaml
+custom_fields:
+  - field: data.mi_campo.ip_origen
+    description: "IP de mi sistema personalizado"
+```
+3. **Reiniciar el servicio**:
+```bash
+sudo wazuh-reputation restart
+```
+
 ### Sistema de Notificaciones
 
 El sistema envía notificaciones automáticas cuando detecta IPs con niveles de riesgo CRITICAL, HIGH o MEDIUM.
@@ -296,13 +344,28 @@ VT Detecciones: 8/87
 
 ```bash
 # Descargar script de desinstalación
-wget https://raw.githubusercontent.com/your-repo/wazuh-ip-reputation/main/uninstall.sh
+wget https://raw.githubusercontent.com/your-repo/wazuh-ip-reputation/main/wazuh_ip_reputation_uninstall.sh
 
 # Ejecutar desinstalación
-sudo bash uninstall.sh
+sudo bash wazuh_ip_reputation_uninstall.sh
+
+# Desinstalación sin confirmaciones
+sudo bash wazuh_ip_reputation_uninstall.sh --force
+
+# Desinstalar pero mantener la base de datos
+sudo bash wazuh_ip_reputation_uninstall.sh --keep-database
+
+# Desinstalar sin crear backup
+sudo wazuh_ip_reputation_uninstall.sh --no-backup
+
+# Ver ayuda
+sudo bash wazuh_ip_reputation_uninstall.sh --help
 ```
 
 El script de desinstalación permite:
+- 🗑️ Elimina usuario del sistema
+- 🗑️ Elimina grupo del sistema
+- 📝 Verifica archivos remanentes
 - ✅ Crear backup antes de desinstalar
 - ❓ Eliminar base de datos (opcional)
 - 📝 Conservar logs (opcional)
@@ -385,7 +448,7 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 
 ## 📊 Métricas del Proyecto
 
-- **Líneas de código**: ~2,500
+- **Líneas de código**: ~2,800
 - **Archivos Python**: 2
 - **Scripts Bash**: 4
 - **Tablas de BD**: 5
@@ -396,13 +459,24 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 
 ## 📝 Changelog
 
-### Versión 2.0.2 (2024-07-28)
+### Versión 3.0.0 (2024-07-28)
+- ✅Soporte mejorado para integraciones:
+    - Suricata: data.flow.src_ip, data.flow.dest_ip
+    - pfSense: Campos de firewall
+    - IDS/IPS: Campos genéricos
+    - Aplicaciones web: Headers y campos específicos
+- 📋Comando para probar email
+- ✨Archivo de campos personalizables
+- ✨Soporte mejorado para integraciones
+- ✨Método de extracción mejorado
+
+### Versión 2.0.2 (2024-07-12)
 - 📋Busca en múltiples endpoints de Wazuh
 - ✅Incluye vulnerabilidades y eventos de integridad
 - ✅Modo de prueba para generar IPs de ejemplo
 - ✅Mejor logging y manejo de errores
 
-### Versión 2.0.1 (2024-07-15)
+### Versión 2.0.1 (2024-06-08)
 - 📋 Cambios principales en la versión 2.0.1:
 - ✅ Corrección de VirusTotal API:
 - ✨URL correcta: https://www.virustotal.com/api/v3/ip-addresses/{ip}
@@ -416,8 +490,7 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
     - ✨Mejor manejo de errores en todas las APIs
     - ✨Logging mejorado para diagnóstico
 
-
-### Versión 2.0.0 (2024-06-12)
+### Versión 2.0.0 (2024-06-02)
 - 🎉 Release inicial completo
 - ✨ Integración con Wazuh API
 - ✨ Soporte para VirusTotal, AbuseIPDB y Shodan
@@ -430,10 +503,10 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 - ✨ Instalador y desinstalador interactivos
 
 ### Roadmap Futuro
-- 📅 v2.1.0: Integración con más APIs (AlienVault OTX, ThreatCrowd)
-- 📅 v2.2.0: Dashboard web para visualización
-- 📅 v2.3.0: Integración con Elastic Stack
-- 📅 v3.0.0: Machine Learning para detección de anomalías
+- 📅 v3.1.0: Integración con más APIs (AlienVault OTX, ThreatCrowd)
+- 📅 v3.2.0: Dashboard web para visualización
+- 📅 v3.3.0: Integración con Elastic Stack
+- 📅 v4.0.0: Machine Learning para detección de anomalías
 
 ---
 
@@ -442,7 +515,7 @@ DELETE FROM sent_alerts WHERE sent_at < DATE_SUB(NOW(), INTERVAL 90 DAY);"
 - **Desarrollador**: Juan Pablo Díaz Ezcurdia
 - **Website**: [jpdiaz.com](https://jpdiaz.com)
 - **Licencia**: MIT License
-- **Versión**: 2.0.0
+- **Versión**: 3.0.0
 - **Última actualización**: Julio 2025
 
 ---
