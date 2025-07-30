@@ -97,7 +97,7 @@ show_welcome_banner() {
    \ V  V / (_| |/ /| |_| | | | | |  | ||  __/ 
     \_/\_/ \__,_/___|\__,_| |_| |_| |___|_|    
                                                 
-        Reputation Checker v3.1.0
+        Reputation Checker v3.0.0
 EOF
     echo -e "${NC}"
     echo -e "${GREEN}Sistema de Análisis de Reputación de IPs para Wazuh${NC}"
