@@ -473,7 +473,7 @@ VT Detecciones: 8/87
 
 ```bash
 # Descargar script de desinstalación
-wget https://raw.githubusercontent.com/your-repo/wazuh-ip-reputation/main/wazuh_ip_reputation_uninstall.sh
+wget https://raw.githubusercontent.com/juanpadiaz/wazuh-ip-reputation/main/wazuh_ip_reputation_uninstall.sh
 
 # Ejecutar desinstalación
 sudo bash wazuh_ip_reputation_uninstall.sh
